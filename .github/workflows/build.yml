@@ -17,6 +17,7 @@ jobs:
     env:
       DEVKITPRO: /opt/devkitpro
       DEVKITPPC: /opt/devkitpro/devkitPPC
+      PATH: /opt/devkitpro/devkitPPC/bin:/opt/devkitpro/tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     steps:
       - name: Checkout repository
@@ -26,8 +27,8 @@ jobs:
         run: |
           echo "DEVKITPRO=$DEVKITPRO"
           echo "DEVKITPPC=$DEVKITPPC"
-          powerpc-eabi-g++ --version
-          ls /opt/devkitpro/wut
+          "$DEVKITPPC/bin/powerpc-eabi-g++" --version
+          ls -la "$DEVKITPRO/wut"
 
       - name: Build Pret-arium Switcher
         run: |
@@ -36,7 +37,7 @@ jobs:
 
       - name: Show build output
         run: |
-          find build -maxdepth 3 -type f -print
+          find build -maxdepth 4 -type f -print
 
       - name: Verify WUHB
         run: |
