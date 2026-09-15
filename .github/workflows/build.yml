@@ -20,32 +20,50 @@ jobs:
       PATH: /opt/devkitpro/devkitPPC/bin:/opt/devkitpro/tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Pret-arium overlay
         uses: actions/checkout@v4
+        with:
+          path: overlay
 
-      - name: Show toolchain
+      - name: Download Roseverse Installer base
         run: |
-          echo "DEVKITPRO=$DEVKITPRO"
-          echo "DEVKITPPC=$DEVKITPPC"
-          "$DEVKITPPC/bin/powerpc-eabi-g++" --version
-          ls -la "$DEVKITPRO/wut"
+          git clone --depth 1 \
+            https://github.com/Project-Rose/Roseverse-Installer.git \
+            source
+
+      - name: Apply Pret-arium modifications
+        run: |
+          cp -a overlay/inkay/. source/inkay/
+          cp overlay/Makefile source/Makefile
+
+          if [ -d overlay/fs ]; then
+            cp -a overlay/fs/. source/fs/
+          fi
+
+      - name: Verify source tree
+        run: |
+          test -d source/eg2
+          test -f source/eg2/sys/report.hh
+          test -f source/eg2/network/curl.hh
+          test -f source/inkay/repos/download.cc
 
       - name: Build Pret-arium Switcher
+        working-directory: source
         run: |
           make clean
           make -j$(nproc)
 
       - name: Show build output
         run: |
-          find build -maxdepth 4 -type f -print
+          find source/build -maxdepth 4 -type f -print
 
       - name: Verify WUHB
         run: |
-          test -f build/pretarium_switcher.wuhb
+          test -f source/build/pretarium_switcher.wuhb
 
       - name: Upload Pret-arium Switcher
         uses: actions/upload-artifact@v4
         with:
           name: Pret-arium-Switcher
-          path: build/pretarium_switcher.wuhb
+          path: source/build/pretarium_switcher.wuhb
           if-no-files-found: error
