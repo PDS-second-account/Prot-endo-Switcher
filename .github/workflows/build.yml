@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-
   pull_request:
-
   workflow_dispatch:
 
 jobs:
@@ -24,26 +22,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Wii U dependencies
+      - name: Show toolchain
         run: |
-          dkp-pacman -Syu --noconfirm --needed \
-            wiiu-dev \
-            wiiu-curl \
-            wiiu-mbedtls \
-            ppc-zlib \
-            ppc-brotli
+          echo "DEVKITPRO=$DEVKITPRO"
+          echo "DEVKITPPC=$DEVKITPPC"
+          powerpc-eabi-g++ --version
+          ls /opt/devkitpro/wut
 
       - name: Build Pret-arium Switcher
         run: |
           make clean
           make -j$(nproc)
 
-      - name: Check output
+      - name: Show build output
         run: |
-          ls -lh build/
+          find build -maxdepth 3 -type f -print
+
+      - name: Verify WUHB
+        run: |
           test -f build/pretarium_switcher.wuhb
 
-      - name: Upload WUHB
+      - name: Upload Pret-arium Switcher
         uses: actions/upload-artifact@v4
         with:
           name: Pret-arium-Switcher
