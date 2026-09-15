@@ -1,0 +1,51 @@
+name: Build Pret-arium Switcher
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: devkitpro/devkitppc:latest
+
+    env:
+      DEVKITPRO: /opt/devkitpro
+      DEVKITPPC: /opt/devkitpro/devkitPPC
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Wii U dependencies
+        run: |
+          dkp-pacman -Syu --noconfirm --needed \
+            wiiu-dev \
+            wiiu-curl \
+            wiiu-mbedtls \
+            ppc-zlib \
+            ppc-brotli
+
+      - name: Build Pret-arium Switcher
+        run: |
+          make clean
+          make -j$(nproc)
+
+      - name: Check output
+        run: |
+          ls -lh build/
+          test -f build/pretarium_switcher.wuhb
+
+      - name: Upload WUHB
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pret-arium-Switcher
+          path: build/pretarium_switcher.wuhb
+          if-no-files-found: error
